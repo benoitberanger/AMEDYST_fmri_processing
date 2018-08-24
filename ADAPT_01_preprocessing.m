@@ -108,7 +108,7 @@ e.getSerie('anat').addVolume('^wms','wms',1)
 % do_fsl_mult(concat_cell(fm,fanat),fo);
 
 ff=e.getSerie('anat').addVolume('^c[123]','c',3)
-e.getSerie('anat').addVolume('^wc[123]','wc',3)
+e.getSerie('anat').addVolume('^wc[23]','WM_CSF',2)
 fo=addsuffixtofilenames(anat{1}(1,:),'/mask_brain');
 do_fsl_add(ff,fo)
 
@@ -126,7 +126,7 @@ e.getSerie('anat').addVolume('^brain_','brain_',1)
 % par.reference_slice='middle'; 
 par.use_JSON = 1;
 par.file_reg = '^f.*nii';
-par.TR = 2.030;
+% par.TR = 2.030;
 j_stc = job_slice_timing(dfoncall,par);
 e.getSerie('run').addVolume('^af.*nii','af',1)
 

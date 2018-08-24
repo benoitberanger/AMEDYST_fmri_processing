@@ -28,7 +28,7 @@ onsetFile = e.getSerie('ADAPT_run\d$').getStim('SPMready').toJob;
 par.rp = 1;
 par.rp_regex = 'multiple_regressors.txt';
 par.file_reg  = '^s.*nii'; %le nom generique du volume pour les fonctionel
-% job_first_level_specify(dirFonc,dirStats,onsetFile,par);
+job_first_level_specify(dirFonc,dirStats,onsetFile,par);
 
 
 %% Estimate
@@ -36,7 +36,7 @@ par.file_reg  = '^s.*nii'; %le nom generique du volume pour les fonctionel
 fspm = e.addModel(model_name,model_name);
 save('e_stim','e') % work on this one
 
-% job_first_level_estimate(fspm,par);
+job_first_level_estimate(fspm,par);
 
 
 %% Contrast : definition
