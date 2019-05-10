@@ -7,7 +7,7 @@ mainPath = '/network/lustre/iss01/cenir/analyse/irm/users/asya.ekmen/AMEDYST/ben
 
 %for the preprocessing : Volume selection
 par.anat_file_reg  = '^s.*nii'; %le nom generique du volume pour l'anat
-par.file_reg  = '^f.*nii'; %le nom generique du volume pour les fonctionel
+% par.file_reg  = '^f.*nii'; %le nom generique du volume pour les fonctionel
 
 par.display=0;
 par.run=0;
@@ -15,50 +15,46 @@ par.verbose = 2;
 par.fsl_output_format  = 'NIFTI';
 par.pct=0;
 
-par.sge = 1;
-
 
 %% Get files paths
 
-e = exam(mainPath,'AMEDYST');
+e = exam(mainPath,'2019_05_02_AMEDYST_C16_128_01_GC_043');
 
 % T1
-e.addSerie('t1_mpr_sag_0_8iso_p2$','anat',1) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% t1_mpr_sag_0_8iso_p2$
+e.addSerie('S03_t1_mpr_sag_0_8iso_p2$','anat',1) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% t1_mpr_sag_0_8iso_p2$
 
 e = e.removeIncomplete;
 fprintf('removed non 3DT1 HR subj \n\n\n')
 
-e.addVolume('anat','^s_S\d+_t1_mpr_sag_0_8iso_p2.*nii','s',1)
+e.addVolume('anat','^s.*nii','s',1)
 
 % SEQ
-e.addSerie('SEQ_run1$'        , 'SEQ_run1'        ,1)
-e.addSerie('SEQ_run1_refBLIP$', 'SEQ_run1_refBLIP',1) % refAP
-
-% ADAPT
-e.addSerie('ADAPT_run1$'        , 'ADAPT_run1'        ,1)
-e.addSerie('ADAPT_run1_refBLIP$', 'ADAPT_run1_refBLIP',1) % refAP
-
-% All func volumes
-e.getSerie('run').addVolume('^f.*nii','f',1)
+% e.addSerie('SEQ_run1$'        , 'SEQ_run1'        ,1)
+% e.addSerie('SEQ_run1_refBLIP$', 'SEQ_run1_refBLIP',1) % refAP
+% 
+% % ADAPT
+% e.addSerie('ADAPT_run1$'        , 'ADAPT_run1'        ,1)
+% e.addSerie('ADAPT_run1_refBLIP$', 'ADAPT_run1_refBLIP',1) % refAP
+% 
+% % All func volumes
+% e.getSerie('run').addVolume('^f.*nii','f',1)
 
 % Unzip if necessary
 e.unzipVolume(par)
-
-e.reorderSeries('name'); % mostly useful for topup, that requires pairs of (AP,PA)/(PA,AP) scans
-
+% 
+% e.reorderSeries('name'); % mostly useful for topup, that requires pairs of (AP,PA)/(PA,AP) scans
+% 
 % e.explore
 
 subjectDirs = e.toJob;
-regex_dfonc    = 'run\d$'        ;
-regex_dfonc_op = 'run\d_refBLIP$';
-dfonc    = e.getSerie(regex_dfonc   ).toJob;
-dfonc_op = e.getSerie(regex_dfonc_op).toJob;
-dfoncall = e.getSerie('run'         ).toJob;
+% regex_dfonc    = 'run\d$'        ;
+% regex_dfonc_op = 'run\d_refBLIP$';
+% dfonc    = e.getSerie(regex_dfonc   ).toJob;
+% dfonc_op = e.getSerie(regex_dfonc_op).toJob;
+% dfoncall = e.getSerie('run'         ).toJob;
 anat     = e.getSerie('anat'        ).toJob(0);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-return
 
 t0 = tic;
 
@@ -78,14 +74,12 @@ par.jacobian  = 0;         % write jacobian determinant in normalize space
 par.doROI     = 0;
 par.doSurface = 0;
 j_segment = job_do_segmentCAT12(fanat,par);
-e.getSerie('anat').addVolume('^y'  ,'y'  ,1);
-e.getSerie('anat').addVolume('^ms' ,'ms' ,1);
-e.getSerie('anat').addVolume('^wms','wms',1);
+fy    = e.getSerie('anat').addVolume('^y'  ,'y'  ,1);
+fanat = e.getSerie('anat').addVolume('^ms' ,'ms' ,1);
+fanat = e.getSerie('anat').addVolume('^wms','wms',1);
 e.getSerie('anat').addVolume('^wp1','wp1',1)
 e.getSerie('anat').addVolume('^wp2','wp2',1)
 e.getSerie('anat').addVolume('^wp3','wp3',1)
-
-
 
 %% Preprocess fMRI runs
 
@@ -96,7 +90,7 @@ par.use_JSON = 1;
 par.file_reg = '^f.*nii';
 % par.TR = 2.030;
 j_stc = job_slice_timing(dfoncall,par);
-e.getSerie('run').addVolume('^af.*nii','af',1)
+f = e.getSerie('run').addVolume('^af.*nii','af',1)
 
 %realign and reslice & opposite phase
 par.file_reg = '^af.*nii'; par.type = 'estimate_and_reslice';
@@ -105,7 +99,7 @@ e.getSerie(regex_dfonc).addVolume('^raf.*nii','raf',1)
 e.getSerie(regex_dfonc_op).addVolume('^raf.*nii','raf',1)
 
 %topup and unwarp
-par.file_reg = {'^raf.*nii'};
+par.file_reg = {'^raf.*nii'}; par.sge=0;
 do_topup_unwarp_4D(dfoncall,par)
 e.getSerie('run').addVolume('^utmeanaf','utmeanaf',1)
 e.getSerie('run').addVolume('^utraf.*nii','utraf',1)
